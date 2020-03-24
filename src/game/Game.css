@@ -1,0 +1,5 @@
+.Game {
+  display: grid;
+  grid-template-columns: repeat(6, max-content);
+  grid-gap: 20px;
+}

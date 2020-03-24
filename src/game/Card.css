@@ -1,0 +1,25 @@
+.Card {
+    background: #36c;
+    background:
+    linear-gradient(115deg, transparent 75%, rgba(255,255,255,.8) 75%) 0 0,
+    linear-gradient(245deg, transparent 75%, rgba(255,255,255,.8) 75%) 0 0,
+    linear-gradient(115deg, transparent 75%, rgba(255,255,255,.8) 75%) 7px -15px,
+    linear-gradient(245deg, transparent 75%, rgba(255,255,255,.8) 75%) 7px -15px,
+    #36c;
+    background-size: 15px 30px;
+    height: 140px;
+    width: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 50px;
+    color: #fff;
+    -webkit-text-stroke: 2px #000;
+    border: 3px solid #fff;
+    cursor: pointer;
+}
+
+.Card__selected {
+    border-color: cyan;
+}
