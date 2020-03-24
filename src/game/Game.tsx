@@ -1,20 +1,35 @@
-import React, { useState, SetStateAction } from 'react';
+import React, { useEffect, useState } from 'react';
 import { range, shuffle } from 'lodash';
+import { db } from '../firebase';
 import './Game.css';
 import Card from './Card';
 
-interface GameState {
-  selectedCards: number[],
-  matchedCards: number[],
+interface Game {
+  cards: string[];
+  order: number[];
+  state: {
+    selectedCards: number[],
+    matchedCards: number[],
+  };
 }
 
-type SetGameState = React.Dispatch<SetStateAction<GameState>>;
+type GameRef = firebase.firestore.DocumentReference<Game>;
+let gameRef: GameRef;
 
 const cards = [...Array(24)].map((_, i) => Math.floor(i / 2).toString());
-const order = shuffle(range(24));
 
-function selectCard(card: number, state: GameState, setState: SetGameState) {
-  let { selectedCards } = state;
+async function createGame(cards: Game['cards']) {
+  const order = shuffle(range(24));
+  const state = {
+    selectedCards: [],
+    matchedCards: [],
+  };
+  gameRef = await db.collection('games').add({ cards, order, state }) as GameRef;
+  return gameRef;
+}
+
+function selectCard(card: number, game: Game) {
+  let { selectedCards } = game.state;
 
   if (card === selectedCards[0]) {
     selectedCards = [];
@@ -22,40 +37,49 @@ function selectCard(card: number, state: GameState, setState: SetGameState) {
     selectedCards.push(card);
   }
 
-  setState({ ...state, selectedCards });
+  gameRef.update({ 'state.selectedCards': selectedCards });
 
   if (selectedCards.length === 2) {
     const matched = cards[selectedCards[0]] === cards[selectedCards[1]];
-    setTimeout(() => clearSelectedCards(matched, state, setState), 2000);
+    setTimeout(() => clearSelectedCards(matched, game), 2000);
   }
 }
 
-function clearSelectedCards(matched: boolean, state: GameState, setState: SetGameState) {
-  const { matchedCards } = state;
+function clearSelectedCards(matched: boolean, game: Game) {
+  const { matchedCards } = game.state;
 
   if (matched) {
-    matchedCards.push(...state.selectedCards);
+    matchedCards.push(...game.state.selectedCards);
   }
 
-  setState({ ...state, matchedCards, selectedCards: [] });
+  gameRef.update({ state: { matchedCards, selectedCards: [] } });
 }
 
-const Game: React.FC = () => {
-  const [state, setState] = useState<GameState>({
-    selectedCards: [],
-    matchedCards: [],
-  });
+const GameCmp: React.FC = () => {
+  const [game, setGame] = useState<Game>();
+
+  useEffect(() => {
+    let unsubscribe = () => { };
+
+    createGame(cards).then(ref => {
+      unsubscribe = ref.onSnapshot(qs => setGame(qs.data()));
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <div className="Game">
-      {cards.map((v, i) => (
-        <div key={i.toString()} style={{ order: order[i] }}>
-          {state.matchedCards.indexOf(i) === -1 &&
-            <Card value={v} selected={state.selectedCards.indexOf(i) > -1} onClick={() => selectCard(i, state, setState)}></Card>}
+      {game && game.cards.map((v, i) => (
+        <div key={i.toString()} style={{ order: game.order[i] }}>
+          {game.state.matchedCards.indexOf(i) === -1 &&
+            <Card value={v} selected={game.state.selectedCards.indexOf(i) > -1}
+              onClick={() => selectCard(i, game)}>
+            </Card>}
         </div>
       ))}
     </div>
   );
 }
 
-export default Game;
+export default GameCmp;
