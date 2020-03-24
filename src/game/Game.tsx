@@ -16,8 +16,6 @@ interface Game {
 type GameRef = firebase.firestore.DocumentReference<Game>;
 let gameRef: GameRef;
 
-const cards = [...Array(24)].map((_, i) => Math.floor(i / 2).toString());
-
 async function createGame(cards: Game['cards']) {
   const order = shuffle(range(24));
   const state = {
@@ -31,6 +29,10 @@ async function createGame(cards: Game['cards']) {
 function selectCard(card: number, game: Game) {
   let { selectedCards } = game.state;
 
+  if (selectedCards.length >= 2) {
+    return;
+  }
+
   if (card === selectedCards[0]) {
     selectedCards = [];
   } else {
@@ -40,7 +42,7 @@ function selectCard(card: number, game: Game) {
   gameRef.update({ 'state.selectedCards': selectedCards });
 
   if (selectedCards.length === 2) {
-    const matched = cards[selectedCards[0]] === cards[selectedCards[1]];
+    const matched = game.cards[selectedCards[0]] === game.cards[selectedCards[1]];
     setTimeout(() => clearSelectedCards(matched, game), 2000);
   }
 }
@@ -59,6 +61,7 @@ const GameCmp: React.FC = () => {
   const [game, setGame] = useState<Game>();
 
   useEffect(() => {
+    const cards = [...Array(24)].map((_, i) => Math.floor(i / 2).toString());
     let unsubscribe = () => { };
 
     createGame(cards).then(ref => {
