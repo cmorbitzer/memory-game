@@ -1,5 +1,4 @@
 import React from 'react';
-import classnames from 'classnames';
 import './Card.css';
 
 interface CardProps {
@@ -8,14 +7,12 @@ interface CardProps {
   onClick: () => void;
 }
 
-const Card: React.FC<CardProps> = props => {
-  const classNames = classnames('Card', { Card__selected: props.selected });
-
-  return (
-    <div className={classNames} onClick={props.onClick}>
-      {props.value}
-    </div>
-  );
-}
+const Card: React.FC<CardProps> = props => (
+  <div onClick={props.onClick}>
+    {props.selected ?
+      <div className="Card Card__front">{props.value}</div> :
+      <div className="Card Card__back"></div>}
+  </div>
+);
 
 export default Card;
