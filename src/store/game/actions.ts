@@ -6,6 +6,7 @@ import { Game, GameType, MemoryGameProps, MemoryGameState } from '../../models/G
 import { setGame } from '.';
 
 // TOOD: UNSUBSCRIBE WATCHER WHEN REF CHANGES
+// TODO: Factor these into regular actions
 
 type Thunk = ThunkAction<void, any, any, any>;
 type Ref<T> = firebase.firestore.DocumentReference<T>;
@@ -16,7 +17,7 @@ export function createGame(type: GameType, props?: Game['props']): Thunk {
       props = createGameProps();
     }
     const state = createGameState();
-    const webId = Math.random().toString(36).substr(7).toUpperCase().padStart(6, '0'); // TODO: Guarantee uniqueness. Only use distinctive letters
+    const webId = createGameWebId();
     const game: New<Game> = { type, webId, props, state };
     const ref = await db.collection('games').add(game) as Ref<Game>;
     dispatch(watchGame(ref));
@@ -35,6 +36,12 @@ function createGameState(): MemoryGameState {
     selectedCards: [],
     matchedCards: [],
   };
+}
+
+// TODO: Guarantee uniqueness
+function createGameWebId(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return [...Array(6)].map(() => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
 }
 
 export function loadGame(webId: Game['webId']): Thunk {

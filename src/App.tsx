@@ -13,6 +13,9 @@ const connector = connect(mapState, mapDispatch);
 // TODO: Add turn taking
 // TODO: Add score
 // TODO: Add completion (win/lose)
+// TODO: Add error handling
+// TODO: Add custom game setup
+// TODO: Add user accounts
 const App: React.FC<ConnectedProps<typeof connector>> = ({ game, createGame, loadGame }) => {
   return (
     <div className="App">
@@ -27,6 +30,7 @@ const App: React.FC<ConnectedProps<typeof connector>> = ({ game, createGame, loa
               autoComplete="off"
               onChange={e => {
                 // TODO: Factor out. Use state?
+                // TODO: Add loading spinner with error handling
                 if (e.target.value.length === 6) {
                   loadGame(e.target.value.toUpperCase());
                 }
