@@ -1,7 +1,6 @@
 import React from 'react';
 import { Action, ActionCreator } from 'redux';
 import { connect, ConnectedProps } from 'react-redux';
-import firebase from 'firebase';
 import { Game } from '../models/Game';
 import { FirestoreUpdateActionPayload } from '../store';
 import { updateGameState } from '../store/game/actions';
@@ -33,7 +32,7 @@ function clearSelectedCards(matched: boolean, selectedCards: number[], updateGam
   const data: FirestoreUpdateActionPayload<Game['state']> = { selectedCards: [] };
 
   if (matched) {
-    data.matchedCards = firebase.firestore.FieldValue.arrayUnion(...selectedCards);
+    data.matchedCards = { sentinel: 'arrayUnion', args: selectedCards };
   }
 
   updateGameState(data);
@@ -55,10 +54,11 @@ const GameCmp: React.FC<Props> = ({ game, updateGameState }) => (
     <div className="Game__table">
       {game && game.props.cards.map((v: any, i: any) => (
         <div key={i.toString()} style={{ order: game.props.order[i] }}>
-          {game.state.matchedCards.indexOf(i) === -1 &&
-            <Card value={v} selected={game.state.selectedCards.indexOf(i) > -1}
-              onClick={() => selectCard(i, game, updateGameState)}>
-            </Card>}
+          <Card value={v}
+            selected={game.state.selectedCards.indexOf(i) > -1}
+            matched={game.state.matchedCards.indexOf(i) > -1}
+            onClick={() => selectCard(i, game, updateGameState)}>
+          </Card>
         </div>
       ))}
     </div>

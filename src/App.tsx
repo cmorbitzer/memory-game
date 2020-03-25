@@ -9,6 +9,10 @@ const mapState = ({ game }: RootState) => ({ game });
 const mapDispatch = { createGame, loadGame };
 const connector = connect(mapState, mapDispatch);
 
+// TODO: Factor out login input
+// TODO: Add turn taking
+// TODO: Add score
+// TODO: Add completion (win/lose)
 const App: React.FC<ConnectedProps<typeof connector>> = ({ game, createGame, loadGame }) => {
   return (
     <div className="App">
@@ -22,6 +26,7 @@ const App: React.FC<ConnectedProps<typeof connector>> = ({ game, createGame, loa
               autoFocus
               autoComplete="off"
               onChange={e => {
+                // TODO: Factor out. Use state?
                 if (e.target.value.length === 6) {
                   loadGame(e.target.value.toUpperCase());
                 }

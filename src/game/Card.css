@@ -26,3 +26,7 @@
   color: #000;
   border: 3px solid #000;
 }
+
+.Card__hidden {
+  visibility: hidden;
+}
