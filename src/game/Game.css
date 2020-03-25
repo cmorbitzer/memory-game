@@ -1,4 +1,19 @@
 .Game {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.Game__info {
+  position: absolute;
+  top: 1rem;
+  right: 2rem;
+}
+
+.Game__table {
   display: grid;
   grid-template-columns: repeat(6, max-content);
   grid-gap: 20px;

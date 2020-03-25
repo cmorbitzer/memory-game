@@ -4,6 +4,7 @@ export type GameType = 'memory';
 
 export interface AbstractGame extends Model {
   type: GameType;
+  webId: string;
   props: {};
   state: {};
 }

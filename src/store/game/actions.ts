@@ -16,7 +16,8 @@ export function createGame(type: GameType, props?: Game['props']): Thunk {
       props = createGameProps();
     }
     const state = createGameState();
-    const game: New<Game> = { type, props, state };
+    const webId = Math.random().toString(36).substr(7).toUpperCase().padStart(6, '0'); // TODO: Guarantee uniqueness
+    const game: New<Game> = { type, webId, props, state };
     const ref = await db.collection('games').add(game) as Ref<Game>;
     dispatch(watchGame(ref));
   };
