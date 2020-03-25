@@ -1,32 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { range, shuffle } from 'lodash';
-import { db } from '../firebase';
+import React from 'react';
+import { Action, ActionCreator } from 'redux';
+import { connect, ConnectedProps } from 'react-redux';
+import firebase from 'firebase';
+import { Game } from '../models/Game';
+import { FirestoreUpdateActionPayload } from '../store';
+import { updateGameState } from '../store/game/actions';
 import './Game.css';
 import Card from './Card';
 
-interface Game {
-  cards: string[];
-  order: number[];
-  state: {
-    selectedCards: number[],
-    matchedCards: number[],
-  };
-}
-
-type GameRef = firebase.firestore.DocumentReference<Game>;
-let gameRef: GameRef;
-
-async function createGame(cards: Game['cards']) {
-  const order = shuffle(range(24));
-  const state = {
-    selectedCards: [],
-    matchedCards: [],
-  };
-  gameRef = await db.collection('games').add({ cards, order, state }) as GameRef;
-  return gameRef;
-}
-
-function selectCard(card: number, game: Game) {
+function selectCard(card: number, game: Game, updateGameState: ActionCreator<Action>) {
   let { selectedCards } = game.state;
 
   if (selectedCards.length >= 2) {
@@ -36,53 +18,47 @@ function selectCard(card: number, game: Game) {
   if (card === selectedCards[0]) {
     selectedCards = [];
   } else {
-    selectedCards.push(card);
+    selectedCards = selectedCards.concat(card);
   }
 
-  gameRef.update({ 'state.selectedCards': selectedCards });
+  updateGameState({ selectedCards });
 
   if (selectedCards.length === 2) {
-    const matched = game.cards[selectedCards[0]] === game.cards[selectedCards[1]];
-    setTimeout(() => clearSelectedCards(matched, game), 2000);
+    const matched = game.props.cards[selectedCards[0]] === game.props.cards[selectedCards[1]];
+    setTimeout(() => clearSelectedCards(matched, selectedCards, updateGameState), 2000);
   }
 }
 
-function clearSelectedCards(matched: boolean, game: Game) {
-  const { matchedCards } = game.state;
+function clearSelectedCards(matched: boolean, selectedCards: number[], updateGameState: ActionCreator<Action>) {
+  const data: FirestoreUpdateActionPayload<Game['state']> = { selectedCards: [] };
 
   if (matched) {
-    matchedCards.push(...game.state.selectedCards);
+    data.matchedCards = firebase.firestore.FieldValue.arrayUnion(...selectedCards);
   }
 
-  gameRef.update({ state: { matchedCards, selectedCards: [] } });
+  updateGameState(data);
 }
 
-const GameCmp: React.FC = () => {
-  const [game, setGame] = useState<Game>();
+const mapDispatch = { updateGameState };
+const connector = connect(null, mapDispatch);
 
-  useEffect(() => {
-    const cards = [...Array(24)].map((_, i) => Math.floor(i / 2).toString());
-    let unsubscribe = () => { };
+interface Props extends ConnectedProps<typeof connector> {
+  game: Game;
+}
 
-    createGame(cards).then(ref => {
-      unsubscribe = ref.onSnapshot(qs => setGame(qs.data()));
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  return (
+const GameCmp: React.FC<Props> = ({ game, updateGameState }) => {
+  console.log('game', game.state); return (
     <div className="Game">
-      {game && game.cards.map((v, i) => (
-        <div key={i.toString()} style={{ order: game.order[i] }}>
+      {game && game.props.cards.map((v: any, i: any) => (
+        <div key={i.toString()} style={{ order: game.props.order[i] }}>
           {game.state.matchedCards.indexOf(i) === -1 &&
             <Card value={v} selected={game.state.selectedCards.indexOf(i) > -1}
-              onClick={() => selectCard(i, game)}>
+              onClick={() => selectCard(i, game, updateGameState)}>
             </Card>}
         </div>
       ))}
     </div>
-  );
-}
+  )
+};
 
-export default GameCmp;
+export default connector(GameCmp);
