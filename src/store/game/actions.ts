@@ -37,6 +37,16 @@ function createGameState(): MemoryGameState {
   };
 }
 
+export function loadGame(webId: Game['webId']): Thunk {
+  return async dispatch => {
+    const qs = await db.collection('games').where('webId', '==', webId).limit(1).get();
+    if (!qs.empty) {
+      const ref = qs.docs[0].ref as Ref<Game>;
+      dispatch(watchGame(ref));
+    }
+  };
+}
+
 export function watchGame(ref: Ref<Game>): Thunk {
   return dispatch => {
     ref.onSnapshot(qs => {

@@ -46,25 +46,23 @@ interface Props extends ConnectedProps<typeof connector> {
   game: Game;
 }
 
-const GameCmp: React.FC<Props> = ({ game, updateGameState }) => {
-  console.log('game', game.state); return (
-    <div className="Game">
-      <div className="Game__info">
-        <h2>Game ID: {game.webId}</h2>
-      </div>
-
-      <div className="Game__table">
-        {game && game.props.cards.map((v: any, i: any) => (
-          <div key={i.toString()} style={{ order: game.props.order[i] }}>
-            {game.state.matchedCards.indexOf(i) === -1 &&
-              <Card value={v} selected={game.state.selectedCards.indexOf(i) > -1}
-                onClick={() => selectCard(i, game, updateGameState)}>
-              </Card>}
-          </div>
-        ))}
-      </div>
+const GameCmp: React.FC<Props> = ({ game, updateGameState }) => (
+  <div className="Game">
+    <div className="Game__info">
+      <h2>Game ID: {game.webId}</h2>
     </div>
-  )
-};
+
+    <div className="Game__table">
+      {game && game.props.cards.map((v: any, i: any) => (
+        <div key={i.toString()} style={{ order: game.props.order[i] }}>
+          {game.state.matchedCards.indexOf(i) === -1 &&
+            <Card value={v} selected={game.state.selectedCards.indexOf(i) > -1}
+              onClick={() => selectCard(i, game, updateGameState)}>
+            </Card>}
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 export default connector(GameCmp);
